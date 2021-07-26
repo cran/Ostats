@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Arya Yue, Quentin D. Read, Isadora Essig Fluck, Benjamin Baiser, John M. Grady, Phoebe L. Zarnetske, Sydne Record" />
+
+<meta name="date" content="2021-07-22" />
+
+<title>O-stats: pairwise community-level niche overlap statistics</title>
+
+<script>// Hide empty <a> tag within highlighted CodeBlock for screen reader accessibility (see https://github.com/jgm/pandoc/issues/6352#issuecomment-626106786) -->
+// v0.0.1
+// Written by JooYoung Seo (jooyoung@psu.edu) and Atsushi Yasumoto on June 1st, 2020.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const codeList = document.getElementsByClassName("sourceCode");
+  for (var i = 0; i < codeList.length; i++) {
+    var linkList = codeList[i].getElementsByTagName('a');
+    for (var j = 0; j < linkList.length; j++) {
+      if (linkList[j].innerHTML === "") {
+        linkList[j].setAttribute('aria-hidden', 'true');
+      }
+    }
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+code.sourceCode > span { display: inline-block; line-height: 1.25; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">O-stats: pairwise community-level niche overlap statistics</h1>
+<h4 class="author">Arya Yue, Quentin D. Read, Isadora Essig Fluck, Benjamin Baiser, John M. Grady, Phoebe L. Zarnetske, Sydne Record</h4>
+<h4 class="date">2021-07-22</h4>
+
+
+<div id="TOC">
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#installing-the-ostats-package">Installing the Ostats package</a></li>
+<li><a href="#step-by-step-examples">Step-by-step Examples</a><ul>
+<li><a href="#calculating-the-overlap-statistics-for-linear-data-against-a-local-null-model">Calculating the overlap statistics for linear data against a local null model</a><ul>
+<li><a href="#example-how-to-find-the-degree-of-overlap-in-body-sizes-for-all-small-mammal-species-present-in-a-particular-community-and-compare-it-with-other-communities">EXAMPLE: How to find the degree of overlap in body sizes for all small mammal species present in a particular community, and compare it with other communities?</a></li>
+<li><a href="#arguments-to-ostats">Arguments to Ostats()</a></li>
+</ul></li>
+<li><a href="#overlap-statistics-for-circular-data-against-a-local-null-model">Overlap statistics for circular data against a local null model</a><ul>
+<li><a href="#example-how-to-find-the-degree-of-overlap-in-time-occurences-for-ant-species-present-in-a-chamber-and-compare-across-chambers-of-different-conditions">EXAMPLE: How to find the degree of overlap in time occurences for ant species present in a chamber, and compare across chambers of different conditions?</a></li>
+</ul></li>
+<li><a href="#overlap-plots">Overlap plots</a></li>
+</ul></li>
+<li><a href="#bibliography">Bibliography</a></li>
+</ul>
+</div>
+
+<div id="overview" class="section level1">
+<h1>Overview</h1>
+<p>The study of functional traits in ecology enables a greater understanding of the mechanisms underlying patterns of biodiversity. While trait-based research has traditionally focused on mean trait values for a species, there is a growing awareness of the need to pay greater attention to intraspecific trait variation (ITV; Violle et al. 2012). From an evolutionary standpoint, ITV is important because it reflects differences within a species on which natural selection acts, and ecologically these differences within and among species traits may give rise to differences in species interactions (Bolnick et al. 2011, Read et al. 2018).</p>
+<p>When ITV is taken into account, trait values of individuals of each species may be represented as a distribution rather than as a single mean value. The degree of trait similarity between species can be measured as the median amount of overlap in trait space between all species pairs in a community. Lower overlap indicates greater trait partitioning between pairs of species in a community. The <code>Ostats</code> package calculates an overlap statistic (O-statistic) to measure the degree of community-level trait overlap by fitting nonparametric kernel density functions to each species’ trait distribution and calculating their areas of overlap (Mouillot et al. 2005, Geange et al. 2011, Read et al. 2018). The median pairwise overlap for a community is calculated by first determining the overlap of each species pair in trait space, and then taking the median overlap of each species pair in a community. Functions in this package can be used to assess the level of species trait overlap and compare across communities. Effect size statistics can also be calculated against local or regional null models.</p>
+<p>Note that we have written an accompanying teaching module to Read et al. (2018), which walks through a figure set exercise for the manuscript (Grady et al. 2018). This teaching module may be helpful to review for interpretation of the overlap statistics and graphs.</p>
+</div>
+<div id="installing-the-ostats-package" class="section level1">
+<h1>Installing the Ostats package</h1>
+<p><code>Ostats</code> is available on Github and can be installed using the devtools package with the line of code below.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a>remotes<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&#39;NEON-biodiversity/Ostats&#39;</span>)</span></code></pre></div>
+<hr />
+<p>The Ostats package can be used to do the following:</p>
+<ul>
+<li><p>Calculate overlap statistics for single traits and evaluate them against a null model using <code>Ostats()</code>. <code>Ostats()</code> accepts both linear (e.g., body size) and circular (e.g., time, angles) data.</p></li>
+<li><p>Calculate an overlap statistic for multiple traits in multi-dimensional space using <code>Ostats_multivariate()</code>.</p></li>
+<li><p>Produce visualizations of species trait overlap in each community with <code>Ostats_plot()</code> and <code>Ostats_multivariate_plot()</code>.</p></li>
+</ul>
+</div>
+<div id="step-by-step-examples" class="section level1">
+<h1>Step-by-step Examples</h1>
+<div id="calculating-the-overlap-statistics-for-linear-data-against-a-local-null-model" class="section level2">
+<h2>Calculating the overlap statistics for linear data against a local null model</h2>
+<p>The function <code>Ostats()</code> is the primary function in this package. This function first generates density estimates for species trait distributions and calculates the intersection of two density functions to produce pairwise overlap values. <code>Ostats()</code> then calculates a community overlap value from the pairwise overlap values of all species pairs in the community. Finally, <code>Ostats()</code> calculates effect sizes relative to a null model (z‐scores) to test whether the degree of overlap among species is greater than or less than expected by chance, allowing the user to explore the drivers of variation in body size overlap.</p>
+<div id="example-how-to-find-the-degree-of-overlap-in-body-sizes-for-all-small-mammal-species-present-in-a-particular-community-and-compare-it-with-other-communities" class="section level3">
+<h3>EXAMPLE: How to find the degree of overlap in body sizes for all small mammal species present in a particular community, and compare it with other communities?</h3>
+<p>In this example, the input of <code>Ostats()</code> is taken from a data frame with a column for species identification, a column that indicates which community the individual belongs to, and a column with trait measurements, often log-transformed. The code chunk below generates an input dataset for <code>Ostats()</code>, used to calculate the O-statistics for sites Harvard Forest (HARV) and Jornada (JORN) from the National Ecological Observatory Network (NEON) (Read et al., 2018). <a href="https://www.neonscience.org/">NEON</a> is a National Science Foundation-funded network of 81 terrestrial and aquatic field sites strategically located across climatic domains in the United States where standardized protocols are used to sample a variety of ecological observations including small mammal body sizes. <a href="https://www.neonscience.org/field-sites/harv">Harvard Forest</a> is located in the northeastern U.S. (Massachusetts) and encompasses a temperate hardwood forest ecosystem. <a href="https://www.neonscience.org/field-sites/jorn">Jornada</a> is located in the southwestern U.S. (New Mexico) and encompasses a desert ecosystem.</p>
+<p>In the following code chunk we subset the data frame, remove incomplete observations, and log-transform the <code>weight</code> column so that we can compare body size distributions on a multiplicative scale.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># Load the Ostats package. </span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="kw">library</span>(Ostats)</span>
+<span id="cb2-3"><a href="#cb2-3"></a></span>
+<span id="cb2-4"><a href="#cb2-4"></a>dat &lt;-<span class="st"> </span>small_mammal_data[small_mammal_data<span class="op">$</span>siteID <span class="op">%in%</span><span class="st"> </span><span class="kw">c</span>(<span class="st">&#39;HARV&#39;</span>, <span class="st">&#39;JORN&#39;</span>), </span>
+<span id="cb2-5"><a href="#cb2-5"></a>                         <span class="kw">c</span>(<span class="st">&#39;siteID&#39;</span>, <span class="st">&#39;taxonID&#39;</span>, <span class="st">&#39;weight&#39;</span>)]</span>
+<span id="cb2-6"><a href="#cb2-6"></a>dat &lt;-<span class="st"> </span>dat[<span class="op">!</span><span class="kw">is.na</span>(dat<span class="op">$</span>weight), ]</span>
+<span id="cb2-7"><a href="#cb2-7"></a>dat<span class="op">$</span>log_weight &lt;-<span class="st"> </span><span class="kw">log10</span>(dat<span class="op">$</span>weight)</span></code></pre></div>
+<p>Below is a subset of the input dataset. Each row represents an individual small mammal that was trapped and weighed, with the site where it was captured (<code>siteID</code>), species identity (<code>taxonID</code>), body mass in grams (<code>weight</code>), and the log of the body mass in grams (<code>log_weight</code>). Here we show only a single row from each species at each site.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">do.call</span>(rbind, <span class="kw">lapply</span>(<span class="kw">split</span>(dat, <span class="kw">interaction</span>(dat<span class="op">$</span>siteID, dat<span class="op">$</span>taxonID), <span class="dt">drop =</span> <span class="ot">TRUE</span>), </span>
+<span id="cb3-2"><a href="#cb3-2"></a>                      <span class="cf">function</span>(x) x[<span class="dv">1</span>,]))</span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="co">#&gt;           siteID taxonID weight log_weight</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="co">#&gt; JORN.CHPE   JORN    CHPE   16.0  1.2041200</span></span>
+<span id="cb3-5"><a href="#cb3-5"></a><span class="co">#&gt; JORN.DIME   JORN    DIME   47.0  1.6720979</span></span>
+<span id="cb3-6"><a href="#cb3-6"></a><span class="co">#&gt; JORN.DIOR   JORN    DIOR   43.0  1.6334685</span></span>
+<span id="cb3-7"><a href="#cb3-7"></a><span class="co">#&gt; JORN.DISP   JORN    DISP  122.5  2.0881361</span></span>
+<span id="cb3-8"><a href="#cb3-8"></a><span class="co">#&gt; JORN.MUMU   JORN    MUMU   13.0  1.1139434</span></span>
+<span id="cb3-9"><a href="#cb3-9"></a><span class="co">#&gt; HARV.MYGA   HARV    MYGA   19.0  1.2787536</span></span>
+<span id="cb3-10"><a href="#cb3-10"></a><span class="co">#&gt; HARV.NAIN   HARV    NAIN   17.0  1.2304489</span></span>
+<span id="cb3-11"><a href="#cb3-11"></a><span class="co">#&gt; JORN.NEAL   JORN    NEAL   85.0  1.9294189</span></span>
+<span id="cb3-12"><a href="#cb3-12"></a><span class="co">#&gt; JORN.NEMI   JORN    NEMI  143.0  2.1553360</span></span>
+<span id="cb3-13"><a href="#cb3-13"></a><span class="co">#&gt; JORN.ONAR   JORN    ONAR   33.0  1.5185139</span></span>
+<span id="cb3-14"><a href="#cb3-14"></a><span class="co">#&gt; JORN.ONLE   JORN    ONLE   27.5  1.4393327</span></span>
+<span id="cb3-15"><a href="#cb3-15"></a><span class="co">#&gt; JORN.PEFA   JORN    PEFA   21.0  1.3222193</span></span>
+<span id="cb3-16"><a href="#cb3-16"></a><span class="co">#&gt; JORN.PEFL   JORN    PEFL    6.0  0.7781513</span></span>
+<span id="cb3-17"><a href="#cb3-17"></a><span class="co">#&gt; HARV.PELE   HARV    PELE   36.0  1.5563025</span></span>
+<span id="cb3-18"><a href="#cb3-18"></a><span class="co">#&gt; JORN.PELE   JORN    PELE   39.0  1.5910646</span></span>
+<span id="cb3-19"><a href="#cb3-19"></a><span class="co">#&gt; HARV.PEMA   HARV    PEMA   23.5  1.3710679</span></span>
+<span id="cb3-20"><a href="#cb3-20"></a><span class="co">#&gt; HARV.PEME   HARV    PEME   23.0  1.3617278</span></span>
+<span id="cb3-21"><a href="#cb3-21"></a><span class="co">#&gt; HARV.PESP   HARV    PESP   29.0  1.4623980</span></span>
+<span id="cb3-22"><a href="#cb3-22"></a><span class="co">#&gt; JORN.PGSP   JORN    PGSP   14.0  1.1461280</span></span>
+<span id="cb3-23"><a href="#cb3-23"></a><span class="co">#&gt; JORN.SIHI   JORN    SIHI  170.0  2.2304489</span></span></code></pre></div>
+</div>
+<div id="arguments-to-ostats" class="section level3">
+<h3>Arguments to Ostats()</h3>
+<p>In the below example, all arguments are set to their default values.</p>
+<p>To explore the drivers of variation in body size overlap, <code>Ostats()</code> can implement a null model to test whether individual species’ body size distributions are more evenly spaced along the trait axis than expected by chance. This approach evaluates the z‐score of each observed community against the distribution of a user defined number of null communities.</p>
+<ul>
+<li><p>The argument <code>discrete</code> has a default value of <code>FALSE</code> for continuous variables. If <code>TRUE</code>, the data are treated as discrete.</p></li>
+<li><p>The argument <code>circular</code> defaults to <code>FALSE</code>, meaning the data are on a linear scale (i.e., body masses of individual small mammals). The alternative is <code>TRUE</code> for data that are periodic (e.g., measured in radians or degrees).</p></li>
+<li><p>The argument <code>output</code> specifies whether the median or mean of all pairwise overlap values between distributions of species will be returned. The default value for output is <code>&quot;median&quot;</code>. The choice between median and mean for the output is up to the investigator’s discretion, and it is a good idea to see how much this choice influences the results of the analysis. For examples of analyses using the median and mean, respectively, see Read et al. 2018 and Mouillot et al. 2015.</p></li>
+<li><p>The <code>weight_type</code> argument specifies whether or not the abundances of each species within a community will be used as weights when calculating the median or mean output returned by the Ostats function. Using the default value <code>&quot;hmean&quot;</code> (harmonic mean), the function weights the pairwise overlaps of trait distributions of each pair of species in each community as <code>2/(1/abundance_a + 1/abundance_b)</code>, where <code>abundance_a</code> and <code>abundance_b</code> are the numeric abundances of each species in the pair. The harmonic mean <code>weight_type</code> is set as the default as it minimizes the effect of outliers and rare species. If <code>weight_type = &quot;none&quot;</code>, no weights are used for the calculation of mean or median. If <code>weight_type = &quot;mean&quot;</code>, raw abundances of species are used as weights.</p></li>
+<li><p>The argument <code>nperm</code> sets the number of permutations, or randomly generated data null community subsets, for the null model. The default number of permutations is <code>99</code>. The argument <code>nullqs</code> sets the quantile limits for effect size statistics calculation. This argument should be a length-2 numeric vector of probabilities with values between zero and one. The default lower and upper effect size quantiles, respectively, are <code>0.025</code> and <code>0.975</code>, corresponding to <span class="math inline">\(\alpha = 0.05\)</span>. If <code>run_null_model</code> is set to <code>FALSE</code>, no null models are run and only the raw O-statistics are returned.</p></li>
+<li><p>The <code>shuffle_weights</code> and <code>swap_means</code> arguments allow the user to modify the implementation of the null models. At default, <code>shuffle_weights = FALSE</code> and <code>swap_means = FALSE</code>, and the null model is generated by randomly assigning a taxon that is present in the community to each individual. If <code>shuffle_weights = TRUE</code>, <code>Ostats()</code> shuffles weights given to pairwise overlaps within a community when generating null models. If <code>swap_means = TRUE</code>, the means of body sizes are randomly assigned to species within a community, retaining the shape and width of the distribution around the mean for each species.</p></li>
+<li><p><code>density_args</code> is an argument for the user to add any additional arguments to pass to <code>stats::density()</code>, the function used internally to calculate the nonparametric trait densities, such as <code>bw</code>, <code>n</code>, or <code>adjust</code>. If none are provided, default values are used (<code>bw = &quot;nrd0&quot;</code>, <code>adjust = 1</code>, and <code>n = 512</code>, where <code>bw</code> is the smoothing bandwidth to be used, <code>adjust</code> is a numeric value the bandwidth is multiplied by to get the actual bandwidth implemented by <code>stats::density()</code>, and <code>n</code> is the number of equally spaced points at which the density is to be estimated).</p></li>
+<li><p><code>random_seed</code> can be provided by the user to ensure reproducibility by resetting the random seed before running the stochastic null models.</p></li>
+</ul>
+<p>Running the function may take several minutes, depending on the size of the dataset and the number of null model permutations. A progress bar is provided to help the user monitor the time until the function completes the job. Note that in the code chunk below, the <code>traits</code> argument is a matrix with one column and as many rows as there are individuals in the dataset. The <code>sp</code> and <code>plots</code> arguments are each factor vectors with length equal to the number of individuals in the dataset. In this example, since the data are body sizes as measured by mass in grams, the data are considered linear for the argument <code>data_type</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1"></a> Ostats_example &lt;-<span class="st"> </span><span class="kw">Ostats</span>(<span class="dt">traits =</span> <span class="kw">as.matrix</span>(dat[,<span class="st">&#39;log_weight&#39;</span>, <span class="dt">drop =</span> <span class="ot">FALSE</span>]),</span>
+<span id="cb4-2"><a href="#cb4-2"></a>                    <span class="dt">sp =</span> <span class="kw">factor</span>(dat<span class="op">$</span>taxonID),</span>
+<span id="cb4-3"><a href="#cb4-3"></a>                    <span class="dt">plots =</span> <span class="kw">factor</span>(dat<span class="op">$</span>siteID),</span>
+<span id="cb4-4"><a href="#cb4-4"></a>                    <span class="dt">random_seed =</span> <span class="dv">517</span>)</span>
+<span id="cb4-5"><a href="#cb4-5"></a><span class="co">#&gt; Note: species abundances differ. Consider sampling equivalent numbers of individuals per species.</span></span></code></pre></div>
+<p>The below code chunk shows an example of how the <code>density_args</code> inputs could be changed if so desired:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a>Ostats_example2 &lt;-<span class="st"> </span><span class="kw">Ostats</span>(<span class="dt">traits =</span> <span class="kw">as.matrix</span>(dat[,<span class="st">&#39;log_weight&#39;</span>, <span class="dt">drop =</span> <span class="ot">FALSE</span>]),</span>
+<span id="cb5-2"><a href="#cb5-2"></a>                    <span class="dt">sp =</span> <span class="kw">factor</span>(dat<span class="op">$</span>taxonID),</span>
+<span id="cb5-3"><a href="#cb5-3"></a>                    <span class="dt">plots =</span> <span class="kw">factor</span>(dat<span class="op">$</span>siteID), </span>
+<span id="cb5-4"><a href="#cb5-4"></a>                    <span class="dt">density_args=</span><span class="kw">list</span>(<span class="dt">bw =</span> <span class="st">&#39;nrd0&#39;</span>, <span class="dt">adjust =</span> <span class="dv">2</span>, <span class="dt">n=</span><span class="dv">200</span>),</span>
+<span id="cb5-5"><a href="#cb5-5"></a>                    <span class="dt">random_seed =</span> <span class="dv">518</span>)</span></code></pre></div>
+<p>The result of <code>Ostats</code> is a list containing four items. The first item in the list is <code>overlaps_norm</code>, a matrix with one column and the number of rows equal to the number of communities, showing community overlap values for each community with the area under all density functions normalized to 1.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a>Ostats_example<span class="op">$</span>overlaps_norm</span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="co">#&gt;      log_weight</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="co">#&gt; HARV 0.89451637</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a><span class="co">#&gt; JORN 0.01866901</span></span></code></pre></div>
+<p>The second item in the list resulting from running the <code>Ostats</code> function is <code>overlaps_unnorm</code>, a matrix with one column and the number of rows equal to the number of communities showing community overlap values for each community with the area under all density functions proportional to the number of observations in that group.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>Ostats_example<span class="op">$</span>overlaps_unnorm</span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="co">#&gt;      log_weight</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="co">#&gt; HARV 0.65998968</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a><span class="co">#&gt; JORN 0.01024091</span></span></code></pre></div>
+<p>Elements in the <code>overlaps_norm</code> and <code>overlaps_unnorm</code> matrices are overlap values for each community, where one indicates complete overlap and zero indicates no overlap between species pairs within the community. A higher overlap value means greater similarity among species trait distributions. The difference between <code>overlaps_norm</code> and <code>overlaps_unnorm</code> is that <code>overlaps_norm</code> does not take species abundance into account when calculating overlap between each species pair. Harvard Forest (HARV) has a high community overlap value indicating greater similarity among species trait distributions, whereas Jornada (JORN) has a very low community overlap value indicating low similarity in species trait distributions. These results are consistent across both <code>overlaps_norm</code> and <code>overlaps_unnorm</code>.</p>
+<p>The last two items in the list generated by <code>Ostats()</code> contain the effect size statistics from the null models. The third and fourth items in the list are <code>overlaps_norm_ses</code> and <code>overlaps_unnorm_ses</code>, which each consist of five matrices of effect size statistics against a null model. The difference between these two final items are that in <code>overlaps_norm_ses</code> the area under all density functions is normalized to 1, whereas in <code>overlaps_unnorm_ses</code> the area under all density functions is proportional to the number of observations per community. The code below displays the outputs of these third and fourth items:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># View normalized and non-normalized standardized effect size outputs from null model analysis</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>Ostats_example<span class="op">$</span>overlaps_norm_ses</span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="co">#&gt; $ses</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="co">#&gt;       log_weight</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a><span class="co">#&gt; HARV  -0.8434786</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="co">#&gt; JORN -47.7570228</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a><span class="co">#&gt; </span></span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="co">#&gt; $ses_lower</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a><span class="co">#&gt;      log_weight</span></span>
+<span id="cb8-10"><a href="#cb8-10"></a><span class="co">#&gt; HARV  -2.426371</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a><span class="co">#&gt; JORN  -2.072424</span></span>
+<span id="cb8-12"><a href="#cb8-12"></a><span class="co">#&gt; </span></span>
+<span id="cb8-13"><a href="#cb8-13"></a><span class="co">#&gt; $ses_upper</span></span>
+<span id="cb8-14"><a href="#cb8-14"></a><span class="co">#&gt;      log_weight</span></span>
+<span id="cb8-15"><a href="#cb8-15"></a><span class="co">#&gt; HARV   1.595012</span></span>
+<span id="cb8-16"><a href="#cb8-16"></a><span class="co">#&gt; JORN   1.720237</span></span>
+<span id="cb8-17"><a href="#cb8-17"></a><span class="co">#&gt; </span></span>
+<span id="cb8-18"><a href="#cb8-18"></a><span class="co">#&gt; $raw_lower</span></span>
+<span id="cb8-19"><a href="#cb8-19"></a><span class="co">#&gt;      log_weight</span></span>
+<span id="cb8-20"><a href="#cb8-20"></a><span class="co">#&gt; HARV  0.8612621</span></span>
+<span id="cb8-21"><a href="#cb8-21"></a><span class="co">#&gt; JORN  0.8372998</span></span>
+<span id="cb8-22"><a href="#cb8-22"></a><span class="co">#&gt; </span></span>
+<span id="cb8-23"><a href="#cb8-23"></a><span class="co">#&gt; $raw_upper</span></span>
+<span id="cb8-24"><a href="#cb8-24"></a><span class="co">#&gt;      log_weight</span></span>
+<span id="cb8-25"><a href="#cb8-25"></a><span class="co">#&gt; HARV  0.9457456</span></span>
+<span id="cb8-26"><a href="#cb8-26"></a><span class="co">#&gt; JORN  0.9052612</span></span>
+<span id="cb8-27"><a href="#cb8-27"></a>Ostats_example<span class="op">$</span>overlaps_unnorm_ses</span>
+<span id="cb8-28"><a href="#cb8-28"></a><span class="co">#&gt; $ses</span></span>
+<span id="cb8-29"><a href="#cb8-29"></a><span class="co">#&gt;       log_weight</span></span>
+<span id="cb8-30"><a href="#cb8-30"></a><span class="co">#&gt; HARV  -0.7095416</span></span>
+<span id="cb8-31"><a href="#cb8-31"></a><span class="co">#&gt; JORN -69.8210213</span></span>
+<span id="cb8-32"><a href="#cb8-32"></a><span class="co">#&gt; </span></span>
+<span id="cb8-33"><a href="#cb8-33"></a><span class="co">#&gt; $ses_lower</span></span>
+<span id="cb8-34"><a href="#cb8-34"></a><span class="co">#&gt;      log_weight</span></span>
+<span id="cb8-35"><a href="#cb8-35"></a><span class="co">#&gt; HARV  -2.599491</span></span>
+<span id="cb8-36"><a href="#cb8-36"></a><span class="co">#&gt; JORN  -3.740130</span></span>
+<span id="cb8-37"><a href="#cb8-37"></a><span class="co">#&gt; </span></span>
+<span id="cb8-38"><a href="#cb8-38"></a><span class="co">#&gt; $ses_upper</span></span>
+<span id="cb8-39"><a href="#cb8-39"></a><span class="co">#&gt;      log_weight</span></span>
+<span id="cb8-40"><a href="#cb8-40"></a><span class="co">#&gt; HARV  0.9541984</span></span>
+<span id="cb8-41"><a href="#cb8-41"></a><span class="co">#&gt; JORN  1.1318384</span></span>
+<span id="cb8-42"><a href="#cb8-42"></a><span class="co">#&gt; </span></span>
+<span id="cb8-43"><a href="#cb8-43"></a><span class="co">#&gt; $raw_lower</span></span>
+<span id="cb8-44"><a href="#cb8-44"></a><span class="co">#&gt;      log_weight</span></span>
+<span id="cb8-45"><a href="#cb8-45"></a><span class="co">#&gt; HARV  0.6511992</span></span>
+<span id="cb8-46"><a href="#cb8-46"></a><span class="co">#&gt; JORN  0.4750262</span></span>
+<span id="cb8-47"><a href="#cb8-47"></a><span class="co">#&gt; </span></span>
+<span id="cb8-48"><a href="#cb8-48"></a><span class="co">#&gt; $raw_upper</span></span>
+<span id="cb8-49"><a href="#cb8-49"></a><span class="co">#&gt;      log_weight</span></span>
+<span id="cb8-50"><a href="#cb8-50"></a><span class="co">#&gt; HARV  0.6677280</span></span>
+<span id="cb8-51"><a href="#cb8-51"></a><span class="co">#&gt; JORN  0.5092935</span></span></code></pre></div>
+<p>These effect size values are used to compare the observed overlap statistics with a local null model (z-score test). As mentioned, the upper and lower limits are set at 95% by default. If the ses (standard effect sizes) value is lower than the lower limit for that community, it suggests that the community overlap value observed is lower than expected by chance. Similarly, if the community overlap value is higher than the upper limit, the community has a higher overlap than expected by chance. In this example, regardless of whether normalized or non-normalized values are calculated, the community overlap of Harvard Forest (HARV) falls within the upper and lower quantiles, suggesting that the overlap value at HARV is not significantly different from the overlap values calculated from randomly generated community trait distributions. On the other hand, Jornarda (JORN) has a much lower value than the lower quantile limit, suggesting that Jornada small mammal body size distributions are less similar than expected by chance based on the null models.</p>
+</div>
+</div>
+<div id="overlap-statistics-for-circular-data-against-a-local-null-model" class="section level2">
+<h2>Overlap statistics for circular data against a local null model</h2>
+<p><code>Ostats()</code> can also be used to calculate overlap statistics of circular data, such as angular data (e.g., direction and orientation) or time. Two different kinds of circular calculations are available: continuous and discrete. To specify circular trait data, set the argument <code>discrete = FALSE</code> and <code>circular = TRUE</code> if the data are circular and continuous, or set <code>discrete = TRUE</code> and <code>circular = TRUE</code> if the data are circular and discrete (i.e., collected every hour).</p>
+<div id="example-how-to-find-the-degree-of-overlap-in-time-occurences-for-ant-species-present-in-a-chamber-and-compare-across-chambers-of-different-conditions" class="section level3">
+<h3>EXAMPLE: How to find the degree of overlap in time occurences for ant species present in a chamber, and compare across chambers of different conditions?</h3>
+<p>To illustrate the calculation of overlap statistics applied to discrete, circular data the <code>Ostats</code> package provides a sample dataset called <code>ant_data</code>. This is a subset of the data analysed in Stuble et al. (2014). Stuble and colleagues measured the daily activity patterns of ants in chambers with different air temperatures to explore the effects of increased temperature on seed dispersal by ants. The <code>ant_data</code> dataframe consists of three columns: <code>species</code> (given as genus and species with a space between the two names), <code>chamber</code> (chamber ID 1 or 2), and <code>time</code> (integer values ranging from 0-23 to represent the 24 hours in a day).</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">head</span>(ant_data)</span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="co">#&gt;                   species chamber time</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="co">#&gt; 1    Camponotus castaneus       1    0</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a><span class="co">#&gt; 2    Camponotus castaneus       1    0</span></span>
+<span id="cb9-5"><a href="#cb9-5"></a><span class="co">#&gt; 3    Camponotus castaneus       1    0</span></span>
+<span id="cb9-6"><a href="#cb9-6"></a><span class="co">#&gt; 4    Camponotus castaneus       1    0</span></span>
+<span id="cb9-7"><a href="#cb9-7"></a><span class="co">#&gt; 5 Crematogaster lineolata       1    0</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a><span class="co">#&gt; 6 Crematogaster lineolata       1    0</span></span></code></pre></div>
+<p>The arguments are similar to the linear data calculation. In the example below with <code>ant_data</code>, the input data are a record of ants in two chambers and their hour of occurrence. Because the time variable is discrete, we specify <code>discrete = TRUE</code> and <code>circular = TRUE</code>. We specify the argument <code>unique_values</code> to tabulate the density at all possible discrete values that the time of occurrence can take. In this case there are 24 possible values, <code>0:23</code>. Finally, for continuous circular data (not shown here), <code>circular_args</code> can be used to pass additional arguments to the underlying function <code>circular::circular()</code> used to convert <code>traits</code> to objects of class <code>circular</code>.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a><span class="co"># Calculate overlap statistics for hourly data using the ant_data dataset</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a>circular_example &lt;-<span class="st"> </span><span class="kw">Ostats</span>(<span class="dt">traits =</span> <span class="kw">as.matrix</span>(ant_data[, <span class="st">&#39;time&#39;</span>, <span class="dt">drop =</span> <span class="ot">FALSE</span>]),</span>
+<span id="cb10-3"><a href="#cb10-3"></a>                    <span class="dt">sp =</span> <span class="kw">factor</span>(ant_data<span class="op">$</span>species),</span>
+<span id="cb10-4"><a href="#cb10-4"></a>                    <span class="dt">plots =</span> <span class="kw">factor</span>(ant_data<span class="op">$</span>chamber),</span>
+<span id="cb10-5"><a href="#cb10-5"></a>                    <span class="dt">discrete =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb10-6"><a href="#cb10-6"></a>                    <span class="dt">circular =</span> <span class="ot">TRUE</span>,</span>
+<span id="cb10-7"><a href="#cb10-7"></a>                    <span class="dt">unique_values =</span> <span class="dv">0</span><span class="op">:</span><span class="dv">23</span>,</span>
+<span id="cb10-8"><a href="#cb10-8"></a>                    <span class="dt">random_seed =</span> <span class="dv">519</span>)</span>
+<span id="cb10-9"><a href="#cb10-9"></a><span class="co">#&gt; Note: species abundances differ. Consider sampling equivalent numbers of individuals per species.</span></span></code></pre></div>
+<p>The output is the same as in the linear data calculation. The code below shows the normalized and non-normalized overlap values for the two chambers, respectively, in the first four lines followed by the standardized effect sizes from the null models.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>circular_example<span class="op">$</span>overlaps_norm</span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="co">#&gt;        time</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="co">#&gt; 1 0.6803135</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a><span class="co">#&gt; 2 0.6347750</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a>circular_example<span class="op">$</span>overlaps_unnorm</span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="co">#&gt;        time</span></span>
+<span id="cb11-7"><a href="#cb11-7"></a><span class="co">#&gt; 1 0.5275900</span></span>
+<span id="cb11-8"><a href="#cb11-8"></a><span class="co">#&gt; 2 0.4909893</span></span>
+<span id="cb11-9"><a href="#cb11-9"></a>circular_example<span class="op">$</span>overlaps_norm_ses</span>
+<span id="cb11-10"><a href="#cb11-10"></a><span class="co">#&gt; $ses</span></span>
+<span id="cb11-11"><a href="#cb11-11"></a><span class="co">#&gt;        time</span></span>
+<span id="cb11-12"><a href="#cb11-12"></a><span class="co">#&gt; 1 -18.74562</span></span>
+<span id="cb11-13"><a href="#cb11-13"></a><span class="co">#&gt; 2 -21.87423</span></span>
+<span id="cb11-14"><a href="#cb11-14"></a><span class="co">#&gt; </span></span>
+<span id="cb11-15"><a href="#cb11-15"></a><span class="co">#&gt; $ses_lower</span></span>
+<span id="cb11-16"><a href="#cb11-16"></a><span class="co">#&gt;        time</span></span>
+<span id="cb11-17"><a href="#cb11-17"></a><span class="co">#&gt; 1 -1.802151</span></span>
+<span id="cb11-18"><a href="#cb11-18"></a><span class="co">#&gt; 2 -2.145255</span></span>
+<span id="cb11-19"><a href="#cb11-19"></a><span class="co">#&gt; </span></span>
+<span id="cb11-20"><a href="#cb11-20"></a><span class="co">#&gt; $ses_upper</span></span>
+<span id="cb11-21"><a href="#cb11-21"></a><span class="co">#&gt;       time</span></span>
+<span id="cb11-22"><a href="#cb11-22"></a><span class="co">#&gt; 1 1.967540</span></span>
+<span id="cb11-23"><a href="#cb11-23"></a><span class="co">#&gt; 2 1.749895</span></span>
+<span id="cb11-24"><a href="#cb11-24"></a><span class="co">#&gt; </span></span>
+<span id="cb11-25"><a href="#cb11-25"></a><span class="co">#&gt; $raw_lower</span></span>
+<span id="cb11-26"><a href="#cb11-26"></a><span class="co">#&gt;        time</span></span>
+<span id="cb11-27"><a href="#cb11-27"></a><span class="co">#&gt; 1 0.8692041</span></span>
+<span id="cb11-28"><a href="#cb11-28"></a><span class="co">#&gt; 2 0.8625668</span></span>
+<span id="cb11-29"><a href="#cb11-29"></a><span class="co">#&gt; </span></span>
+<span id="cb11-30"><a href="#cb11-30"></a><span class="co">#&gt; $raw_upper</span></span>
+<span id="cb11-31"><a href="#cb11-31"></a><span class="co">#&gt;        time</span></span>
+<span id="cb11-32"><a href="#cb11-32"></a><span class="co">#&gt; 1 0.9112297</span></span>
+<span id="cb11-33"><a href="#cb11-33"></a><span class="co">#&gt; 2 0.9075405</span></span>
+<span id="cb11-34"><a href="#cb11-34"></a>circular_example<span class="op">$</span>overlaps_unnorm_ses</span>
+<span id="cb11-35"><a href="#cb11-35"></a><span class="co">#&gt; $ses</span></span>
+<span id="cb11-36"><a href="#cb11-36"></a><span class="co">#&gt;        time</span></span>
+<span id="cb11-37"><a href="#cb11-37"></a><span class="co">#&gt; 1 -41.91248</span></span>
+<span id="cb11-38"><a href="#cb11-38"></a><span class="co">#&gt; 2 -19.18341</span></span>
+<span id="cb11-39"><a href="#cb11-39"></a><span class="co">#&gt; </span></span>
+<span id="cb11-40"><a href="#cb11-40"></a><span class="co">#&gt; $ses_lower</span></span>
+<span id="cb11-41"><a href="#cb11-41"></a><span class="co">#&gt;        time</span></span>
+<span id="cb11-42"><a href="#cb11-42"></a><span class="co">#&gt; 1 -3.486850</span></span>
+<span id="cb11-43"><a href="#cb11-43"></a><span class="co">#&gt; 2 -1.345169</span></span>
+<span id="cb11-44"><a href="#cb11-44"></a><span class="co">#&gt; </span></span>
+<span id="cb11-45"><a href="#cb11-45"></a><span class="co">#&gt; $ses_upper</span></span>
+<span id="cb11-46"><a href="#cb11-46"></a><span class="co">#&gt;        time</span></span>
+<span id="cb11-47"><a href="#cb11-47"></a><span class="co">#&gt; 1 0.2555639</span></span>
+<span id="cb11-48"><a href="#cb11-48"></a><span class="co">#&gt; 2 0.1426933</span></span>
+<span id="cb11-49"><a href="#cb11-49"></a><span class="co">#&gt; </span></span>
+<span id="cb11-50"><a href="#cb11-50"></a><span class="co">#&gt; $raw_lower</span></span>
+<span id="cb11-51"><a href="#cb11-51"></a><span class="co">#&gt;        time</span></span>
+<span id="cb11-52"><a href="#cb11-52"></a><span class="co">#&gt; 1 0.5492097</span></span>
+<span id="cb11-53"><a href="#cb11-53"></a><span class="co">#&gt; 2 0.4961948</span></span>
+<span id="cb11-54"><a href="#cb11-54"></a><span class="co">#&gt; </span></span>
+<span id="cb11-55"><a href="#cb11-55"></a><span class="co">#&gt; $raw_upper</span></span>
+<span id="cb11-56"><a href="#cb11-56"></a><span class="co">#&gt;        time</span></span>
+<span id="cb11-57"><a href="#cb11-57"></a><span class="co">#&gt; 1 0.5513153</span></span>
+<span id="cb11-58"><a href="#cb11-58"></a><span class="co">#&gt; 2 0.4966289</span></span></code></pre></div>
+<p>Regardless of whether the normalized or non-normalized overlap values are considered, for both chamber communities, the <code>ses</code> value is lower than the lower limit for each community, suggesting that the community overlap values observed for each chamber are lower than expected by chance from a null model.</p>
+</div>
+</div>
+<div id="overlap-plots" class="section level2">
+<h2>Overlap plots</h2>
+<p>The graphing function <code>Ostats_plot()</code> depends on <code>ggplot2</code> and can be used to visualize species trait overlaps of each community for multiple communities.</p>
+<p>The input dataset needs to have these information: * <code>plots</code> community or site identity: a vector of names to indicate which community or site the individual belongs to. * <code>sp</code> taxon identification: a vector of species or taxa names. * <code>traits</code> trait measurements: a vector of trait measurements for each individual, or a matrix with rows representing individuals and columns representing traits. * <code>overlap_dat</code> This input information is optional. It is an object containing the output of <code>Ostats</code> for the same data. If provided, it is used to label the plot panels with the community overlap values.</p>
+<p>There are various arguments to fine-tune the plot you produce:</p>
+<ul>
+<li><p>The argument <code>n_col</code> can be used to change number of columns for layout of individual panels. The default is 1.</p></li>
+<li><p><code>use_plots</code> is a vector to specify which sites to plot. If <code>NULL</code>, the function will plot all the sites/communities. Note that if you try to plot too many communities at once, then the contents of the plots become difficult to see.</p></li>
+<li><p><code>colorvalues</code> is a vector of color values for the density polygons. This argument defaults to a <code>viridis</code> palette if no other is provided. It is recommended that the number of colors be equal to the number of taxa in the community to ensure that the same color is not repeated for different taxa.</p></li>
+<li><p><code>alpha</code> defines the transparency level for colors that fill the density polygons with the default being <code>0.5</code>.</p></li>
+<li><p><code>adjust</code> is a value that is multiplied by the bandwidth adjustment of the density curves. The smaller this value is, the more closely the kernel density estimate will fit local variation in density. The default is 2. See <code>stats::density</code>.</p></li>
+<li><p><code>limits_x</code> a vector of length 2: it sets the limits of the x-axis. The default x-axis limits are: a minimum of <code>0.5</code> times the minimum observed trait measurement (with <code>NA</code>s removed) and a maximum of <code>1.5</code> times the maximum observed trait measurement (<code>c(0.5*min(trait,na.rm=TRUE), 1.5*max(trait,na.rm=TRUE))</code>).</p></li>
+<li><p><code>scale</code> If you want the scale of x, y or both x and y axis to be adjusted according to each site density probability, set the argument to <code>&quot;free_x&quot;</code>, <code>&quot;free_y&quot;</code> or <code>&quot;free&quot;</code> respectively. Default = <code>&quot;fixed&quot;</code> which uses the same scale across all sites. See <code>ggplot2::facet_grid</code>.</p></li>
+<li><p><code>name_x</code> is a character string indicating the name of the x-axis (i.e., the name of the trait) with a default of <code>&#39;trait value&#39;</code>.</p></li>
+<li><p><code>name_y</code> is a character string indicating the name of the y-axis with a default of <code>&#39;Probability Density&#39;</code>.</p></li>
+<li><p><code>means</code> is a logical variable. If set to <code>FALSE</code>, which is the default value, then a single column of graphs is generated that illustrates the trait probability density curves for each species. If set to <code>TRUE</code>, then graphs of mean trait values are plotted in a second column for comparison of means with trait density curves. Note that setting means to <code>TRUE</code> is only recommended when you are plotting a few illustrative sites. If too many sites are plotted with mean set to <code>TRUE</code> then the graphs become small and difficult to read.</p></li>
+</ul>
+<p>The following example plots the NEON small mammal data, showing only Harvard Forest and Jornada.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a>siteID &lt;-<span class="st"> </span>small_mammal_data<span class="op">$</span>siteID</span>
+<span id="cb12-2"><a href="#cb12-2"></a>taxonID &lt;-<span class="st"> </span>small_mammal_data<span class="op">$</span>taxonID</span>
+<span id="cb12-3"><a href="#cb12-3"></a>trait &lt;-<span class="st"> </span><span class="kw">log10</span>(small_mammal_data<span class="op">$</span>weight)</span>
+<span id="cb12-4"><a href="#cb12-4"></a></span>
+<span id="cb12-5"><a href="#cb12-5"></a>sites2use&lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&#39;HARV&#39;</span>,<span class="st">&#39;JORN&#39;</span>) </span>
+<span id="cb12-6"><a href="#cb12-6"></a></span>
+<span id="cb12-7"><a href="#cb12-7"></a><span class="kw">Ostats_plot</span>(<span class="dt">plots =</span> siteID, </span>
+<span id="cb12-8"><a href="#cb12-8"></a>            <span class="dt">sp =</span> taxonID, </span>
+<span id="cb12-9"><a href="#cb12-9"></a>            <span class="dt">traits =</span> trait, </span>
+<span id="cb12-10"><a href="#cb12-10"></a>            <span class="dt">overlap_dat =</span> small_mammal_Ostats, </span>
+<span id="cb12-11"><a href="#cb12-11"></a>            <span class="dt">use_plots =</span> sites2use, </span>
+<span id="cb12-12"><a href="#cb12-12"></a>            <span class="dt">name_x =</span> <span class="st">&#39;log10 Body Weight (g)&#39;</span>, </span>
+<span id="cb12-13"><a href="#cb12-13"></a>            <span class="dt">means =</span> <span class="ot">TRUE</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" width="80%" style="display: block; margin: auto;" /></p>
+<p>The graphs to the left show the intraspecific trait variation as illustrated by density curves, and the graphs to the right show mean trait values. For all graphs probability density is shown on the y-axis and log-transformed body weight on the x-axis. Each color represents a different species and colors are consistent across graphs. The top row illustrates trait values for HARV (Harvard Forest), whereas the bottom row illustrates trait values for JORN (Jornada). The left column of graphs also show the raw O-statistic for the entire community. Note that there is more overlap in body weight for HARV than for JORN.</p>
+<p>Note that currently there is no functionality within the <code>Ostats</code> package to graph the outputs of <code>Ostats()</code> when it is applied to circular data.</p>
+</div>
+</div>
+<div id="bibliography" class="section level1">
+<h1>Bibliography</h1>
+<p>Bolnick, D.I., P. Amarasekare, M.S. Araujo, R. Burger, J.M. Levine, M. Novak, V.H.W. Rudolf, S.J. Schreiber, M.C. Urban, and D.A. Vasseur. 2011. Why intraspecific trait variation matters in ecology. <em>Trends in Ecology and Evolution</em> 26(4):183-192. <a href="https://doi.org/10.1016/j.tree.2011.01.009" class="uri">https://doi.org/10.1016/j.tree.2011.01.009</a></p>
+<p>Geange, S.W., S. Pledger, K.C. Burns, and J.S. Shima. 2011. A unified analysis of niche overlap incorporating data of different types. <em>Methods in Ecology and Evolution</em> 2(2):175-184. <a href="https://doi.org/10.1111/j.2041-210X.2010.00070.x" class="uri">https://doi.org/10.1111/j.2041-210X.2010.00070.x</a></p>
+<p>Grady, J.M., Q.D. Read, S. Record, P.L. Zarnetske, B. Baiser, K. Thorne, and J. Belmaker. 2018. Size, niches, and the latitudinal diversity gradient. <em>Teaching Issues and Experiments in Ecology</em> 14: Figure Set #1.</p>
+<p>Mouillot, D., W. Stubbs, M. Faure, O. Dumay, J.A. Tomasini, J.B. Wilson, and T. Do Chi. 2005. Niche overlap estimated based on quantitative functional traits: A new family of non-parametric indices. <em>Oecologia</em> 145(3):345-353. <a href="https://doi.org/10.1007/s00442-005-0151-z" class="uri">https://doi.org/10.1007/s00442-005-0151-z</a></p>
+<p>Read, Q.D., J.M. Grady, P.L. Zarnetske, S. Record, B. Baiser, J. Belmaker, M.-N. Tuanmu, A. Strecker, L. Beaudrot, and K.M. Thibault. 2018. Among-species overlap in rodent body size distributions predicts species richness along a temperature gradient. <em>Ecography</em> 41(10):1718–1727. <a href="https://doi.org/10.1111/ecog.03641" class="uri">https://doi.org/10.1111/ecog.03641</a></p>
+<p>Stuble, K.L., C.M. Patterson, M.A. Rodriguez-Cabal, R.R. Ribbons, R.R. Dunn, and N.J. Sanders. 2014. Ant-mediated seed dispersal in a warmed world. <em>PeerJ</em> 2:e286.</p>
+<p>Violle, C., B.J. Enquist, B.J. McGill, L. Jiang, C.H. Albert, C. Hulshof, V. Jung, and J. Messier. 2012. The return of the variance: Intraspecific variability in community ecology. <em>Trends in Ecology &amp; Evolution</em> 27(4):244–252. <a href="https://doi.org/10.1016/j.tree.2011.11.014" class="uri">https://doi.org/10.1016/j.tree.2011.11.014</a></p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
