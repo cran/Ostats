@@ -1,8 +1,8 @@
 Package: Ostats
 Type: Package
 Title: O-Stats, or Pairwise Community-Level Niche Overlap Statistics
-Version: 0.1.0
-Authors@R: c(person(c('Quentin', 'D.'), 'Read', role = c('aut', 'cre'), email = 'qread@sesync.org'),
+Version: 0.1.1
+Authors@R: c(person(c('Quentin', 'D.'), 'Read', role = c('aut', 'cre'), email = 'quentin.read@usda.gov'),
              person('Arya', 'Yue', role = 'aut'),
              person(c('Isadora', 'E.'), 'Fluck', role = 'aut'),
              person('Benjamin', 'Baiser', role = 'aut'),
@@ -19,7 +19,7 @@ Description: O-statistics, or overlap statistics, measure the degree of communit
     The Ostats() function calculates separate univariate overlap statistics for each trait, 
     while the Ostats_multivariate() function calculates a single multivariate overlap statistic for all traits. 
     O-statistics can be evaluated against null models to obtain standardized effect sizes. 
-    Ostats is part of the collaborative Macrosystems Biodiversity Project "Local- to continental-scale 
+    'Ostats' is part of the collaborative Macrosystems Biodiversity Project "Local- to continental-scale 
     drivers of biodiversity across the National Ecological Observatory Network (NEON)." 
     For more information on this project, see the Macrosystems Biodiversity Website 
     (<https://neon-biodiversity.github.io/>). Calculation of O-statistics is described in
@@ -28,16 +28,17 @@ Description: O-statistics, or overlap statistics, measure the degree of communit
     (2018) <http://tiee.esa.org/vol/v14/issues/figure_sets/grady/abstract.html>.
 License: MIT + file LICENSE
 Encoding: UTF-8
+URL: https://neon-biodiversity.github.io/Ostats/
 BugReports: https://github.com/NEON-biodiversity/Ostats/issues
 LazyData: true
 Depends: R (>= 3.5.0)
 Imports: sfsmisc, matrixStats, circular, hypervolume, ggplot2,
         gridExtra, viridis, grid, MASS
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Suggests: testthat (>= 2.1.0), knitr, rmarkdown
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2021-07-22 19:01:28 UTC; qread
+Packaged: 2021-11-16 14:30:22 UTC; Quentin
 Author: Quentin D. Read [aut, cre],
   Arya Yue [aut],
   Isadora E. Fluck [aut],
@@ -45,6 +46,6 @@ Author: Quentin D. Read [aut, cre],
   John M. Grady [aut],
   Phoebe L. Zarnetske [aut],
   Sydne Record [aut]
-Maintainer: Quentin D. Read <qread@sesync.org>
+Maintainer: Quentin D. Read <quentin.read@usda.gov>
 Repository: CRAN
-Date/Publication: 2021-07-26 06:40:04 UTC
+Date/Publication: 2021-11-16 17:10:10 UTC

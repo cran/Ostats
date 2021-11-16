@@ -6,9 +6,6 @@ knitr::opts_chunk$set(
   dev.args = list(type = "cairo-png")
 )
 
-## ----eval=FALSE---------------------------------------------------------------
-#  remotes::install_github('NEON-biodiversity/Ostats')
-
 ## -----------------------------------------------------------------------------
 # Load the Ostats package. 
 library(Ostats)
