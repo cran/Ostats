@@ -1,7 +1,7 @@
 Package: Ostats
 Type: Package
 Title: O-Stats, or Pairwise Community-Level Niche Overlap Statistics
-Version: 0.1.1
+Version: 0.2.0
 Authors@R: c(person(c('Quentin', 'D.'), 'Read', role = c('aut', 'cre'), email = 'quentin.read@usda.gov'),
              person('Arya', 'Yue', role = 'aut'),
              person(c('Isadora', 'E.'), 'Fluck', role = 'aut'),
@@ -38,7 +38,7 @@ RoxygenNote: 7.1.2
 Suggests: testthat (>= 2.1.0), knitr, rmarkdown
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2021-11-16 14:30:22 UTC; Quentin
+Packaged: 2022-09-12 15:27:31 UTC; qdread
 Author: Quentin D. Read [aut, cre],
   Arya Yue [aut],
   Isadora E. Fluck [aut],
@@ -48,4 +48,4 @@ Author: Quentin D. Read [aut, cre],
   Sydne Record [aut]
 Maintainer: Quentin D. Read <quentin.read@usda.gov>
 Repository: CRAN
-Date/Publication: 2021-11-16 17:10:10 UTC
+Date/Publication: 2022-09-12 16:20:02 UTC
